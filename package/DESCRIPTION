@@ -1,0 +1,10 @@
+Package: KmeansReinitialization2021
+Title: Functions for Testing K-means Reinitialization
+Description: Implements functions to test the k-means reinitialization strategy.
+Authors@R: person("Aaron", "Lun", role=c("aut", "cre"), email="infinite.monkeys.with.keyboards@gmail.com")
+Version: 0.0.1
+Date: 2021-11-11
+Imports: Rcpp
+LinkingTo: Rcpp
+SystemRequirements: C++17
+RoxygenNote: 7.1.2
