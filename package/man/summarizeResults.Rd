@@ -5,17 +5,20 @@
 \alias{plotResults}
 \title{Summarize simulation results}
 \usage{
-summarizeResults(df)
+summarizeResults(df, collapse = FALSE)
 
 plotResults(df)
 }
 \arguments{
 \item{df}{A data frame of WCSS and Rand statistics, usually generated from \code{\link{simulateScenarios}}.}
+
+\item{collapse}{Logical scalar indicating whether the results should be collapsed ito a single data frame.}
 }
 \value{
-For \code{plotResults}, a list of ggplot objects containing scatter and violin plots.
-
 For \code{summarizeResults}, a list of data frames containing the mean and standard error of the Rand index and WCSS for each method.
+If \code{collapse=TRUE}, the statistics are rearranged into a single data.frame with a single row. 
+
+For \code{plotResults}, a list of ggplot objects containing scatter and violin plots.
 }
 \description{
 Summarize and plot the simulation results.
