@@ -1,2 +1,3 @@
 ^_cpp$
 ^\.gitignore$
+^fetch_headers\.sh$

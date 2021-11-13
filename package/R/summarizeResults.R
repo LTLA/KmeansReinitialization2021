@@ -35,8 +35,8 @@ summarizeResults <- function(df, collapse=FALSE) {
     wcss <- rand <- list()
     for (m in names(by.method)) {
         sub <- df[by.method[[m]],,drop=FALSE]
-        wcss[[m]] <- data.frame(mean = sum(sub$wcss), se = sd(sub$wcss) / sqrt(nrow(sub)))
-        rand[[m]] <- data.frame(mean = sum(sub$rand), se = sd(sub$rand) / sqrt(nrow(sub))) 
+        wcss[[m]] <- data.frame(mean = mean(sub$wcss), se = sd(sub$wcss) / sqrt(nrow(sub)))
+        rand[[m]] <- data.frame(mean = mean(sub$rand), se = sd(sub$rand) / sqrt(nrow(sub))) 
     }
 
     if (!collapse) {
