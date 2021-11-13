@@ -1,0 +1,43 @@
+generator <- function(npop = 10, sd = 5, holdout=1, ncells = 1000, ndim = 5) {
+    force(npop)
+    force(ndim)
+    force(sd)
+    force(ncells)
+    function() {
+        populations <- matrix(rnorm(npop * ndim, sd=sd), ncol=npop)
+        sampled <- sample(ncol(populations), ncells, replace=TRUE)
+        stuff <- populations[,sampled]
+        stuff <- stuff + rnorm(length(stuff))
+        list(data=stuff, subset=(sampled <= ncol(populations) - holdout))
+    }
+}
+
+dir <- "results/populations"
+unlink(dir, recursive=TRUE)
+dir.create(dir, recursive=TRUE, showWarnings=FALSE)
+set.seed(984241)
+
+settings <- expand.grid(
+    npop = c(5, 10, 20),
+    sd = c(1, 5),
+    holdout = c(1, 3),
+    k = c(5, 10, 20)
+)
+
+library(KmeansReinitialization2021)
+collated <- list()
+
+for (i in seq_len(nrow(settings))) {
+    current <- settings[i,]
+    FUN <- generator(npop = current$npop, sd = current$sd, holdout = current$holdout)
+    out <- simulateScenario(FUN, k=current$k)
+    collated[[i]] <- summarizeResults(out, collapse=TRUE)
+}
+
+df <- do.call(rbind, collated)
+for (j in seq_len(ncol(df))) {
+    df[,j] <- signif(df[,j], 4)
+}
+
+df <- cbind(settings, df)
+write.table(df, file=file.path(dir, "stats.tsv"), row.names=FALSE, sep="\t")
