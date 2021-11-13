@@ -7,7 +7,7 @@
 #' @param subset Vector specifying the subset of observations in \code{x} to use as the initial dataset.
 #' @param k Integer scalar specifying the number of clusters.
 #'
-#' @return Numeric vector containing the WCSS and Rand indices for each strategy.
+#' @return Data frame containing the WCSS and Rand indices for each strategy.
 #'
 #' @details
 #' The idea is to obtain an initial clustering on \code{x[,subset]} and then apply various strategies to obtain a clustering on \code{x}.
@@ -42,14 +42,13 @@ evaluateScenario <- function(x, subset, k) {
     full <- runKmeans(x, centers=k)
     reinit <- runKmeans(x, centers=first$centers, reinitialize=TRUE)
 
-    c(
-        wcss.rest = sum(rest$wcss),
-        rand.rest = randIndex(first$clusters, rest$clusters[subset]),
-        
-        wcss.full = sum(full$wcss),
-        rand.full = randIndex(first$clusters, full$clusters[subset]),
-
-        wcss.reinit = sum(reinit$wcss),
-        rand.reinit = randIndex(first$clusters, reinit$clusters[subset])
+    data.frame(
+        wcss = c(sum(rest$wcss), sum(full$wcss), sum(reinit$wcss)),
+        rand = c(
+            randIndex(first$clusters, rest$clusters[subset]),
+            randIndex(first$clusters, full$clusters[subset]),
+            randIndex(first$clusters, reinit$clusters[subset])
+        ),
+        method = c("rest", "full", "reinit")
     )
 }

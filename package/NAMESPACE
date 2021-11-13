@@ -3,6 +3,7 @@
 export(evaluateScenario)
 export(randIndex)
 export(runKmeans)
+export(simulateScenario)
 importFrom(Rcpp,sourceCpp)
 importFrom(bluster,pairwiseRand)
 useDynLib(KmeansReinitialization2021, .registration=TRUE)
