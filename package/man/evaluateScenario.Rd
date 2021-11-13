@@ -40,6 +40,6 @@ stuff <- populations[,sampled]
 stuff <- stuff + rnorm(length(stuff))
                                                          
 sub <- sampled < ncol(populations)
-evaluateScenario(stuff, sub, 20)
+evaluateScenario(stuff, sub, 10)
 
 }
