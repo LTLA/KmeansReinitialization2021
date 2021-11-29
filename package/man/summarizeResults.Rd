@@ -5,7 +5,7 @@
 \alias{plotResults}
 \title{Summarize simulation results}
 \usage{
-summarizeResults(df, collapse = FALSE)
+summarizeResults(df, collapse = FALSE, ref.method = NULL)
 
 plotResults(df)
 }
@@ -13,10 +13,15 @@ plotResults(df)
 \item{df}{A data frame of WCSS and Rand statistics, usually generated from \code{\link{simulateScenarios}}.}
 
 \item{collapse}{Logical scalar indicating whether the results should be collapsed ito a single data frame.}
+
+\item{ref.method}{String containing the name of the method to use as the reference.}
 }
 \value{
 For \code{summarizeResults}, a list of data frames containing the mean and standard error of the Rand index and WCSS for each method.
 If \code{collapse=TRUE}, the statistics are rearranged into a single data.frame with a single row. 
+
+If \code{ref.method} is supplied, the data frames instead contain the mean and standard error of the \emph{ratio} of each method's WCSS to that of the reference method,
+and the difference between each method's Rand index and that of the reference method.
 
 For \code{plotResults}, a list of ggplot objects containing scatter and violin plots.
 }

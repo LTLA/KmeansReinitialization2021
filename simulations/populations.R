@@ -31,7 +31,7 @@ for (i in seq_len(nrow(settings))) {
     current <- settings[i,]
     FUN <- generator(npop = current$npop, sd = current$sd, holdout = current$holdout)
     out <- simulateScenario(FUN, k=current$k)
-    collated[[i]] <- summarizeResults(out, collapse=TRUE)
+    collated[[i]] <- summarizeResults(out, collapse=TRUE, ref.method="reinit")
 }
 
 df <- do.call(rbind, collated)
@@ -41,3 +41,6 @@ for (j in seq_len(ncol(df))) {
 
 df <- cbind(settings, df)
 write.table(df, file=file.path(dir, "stats.tsv"), row.names=FALSE, sep="\t")
+
+#hist(log2(df$wcss.simple.mean))
+#hist(df$rand.fresh.mean)

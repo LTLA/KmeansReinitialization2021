@@ -24,8 +24,8 @@ Evaluate a subsetting scenario by computing WCSS and Rand indices to compare clu
 The idea is to obtain an initial clustering on \code{x[,subset]} and then apply various strategies to obtain a clustering on \code{x}.
 This can be:
 \itemize{
-\item \code{rest}, where the centers from the initial clustering are used directly for Hartigan-Wong iterations with the full dataset.
-\item \code{full}, where a fresh initialization is performed with all observations (not using any information from the initial clustering).
+\item \code{simple}, where the centers from the initial clustering are used directly for Hartigan-Wong iterations with the full dataset.
+\item \code{fresh}, where a fresh initialization is performed with all observations (not using any information from the initial clustering).
 Hartigan-Wong iterations are then performed as usual.
 \item \code{reinit}, where a reinitialization strategy is applied that attempts to preserve information from the existing clustering. 
 Hartigan-Wong iterations are then performed as usual.
