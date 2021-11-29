@@ -1,0 +1,115 @@
+\documentclass{article}
+\usepackage{authblk}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+
+\title{Re-initializing k-means clustering with additional observations}
+\author[1]{Aaron Lun}
+\affil[1]{Genentech, Inc. South San Francisco, CA}
+
+\begin{document}
+\maketitle
+
+\section{Motivation}
+
+We consider the problem of k-means clustering after a batch of extra observations have been added to the original dataset.
+More specifically, assume that the original dataset has already been subjected to k-means clustering.
+After adding the extra observations, we wish to obtain a new clustering of the updated dataset.
+This is usually handled by sequential k-means, where the new observations are assigned to (and update) the existing cluster centers;
+or by simply repeating the entire k-means procedure on the updated dataset with an initialization step that uses no information from the existing clustering (i.e., a "fresh" clustering).
+
+We would like our new clustering to account for new subpopulations among the recently added observations.
+This ensures that our new clustering can capture subpopulations that were not observed in the original dataset,
+which is useful when observations are coming in batches from multiple non-replicate sources.
+Unfortunately, sequential k-means struggles with this requirement as it starts in a local minimum based on the existing cluster centers.
+To escape, a new subpopulation must be large enough to relocate the center of the closest existing cluster, 
+while hoping that the observations for that existing cluster can be sensibly reassigned to another existing cluster.
+
+We would also like our new clustering to retain some similarity to the existing clustering of the original dataset.
+This is useful when the existing clustering is known to be of interest - 
+for example, a domain expert has manually generated annotations for each cluster,
+and we want to preserve as much of this information as we can in our new clustering.
+It can also be desirable when the existing clustering is high-quality but expensive, e.g., after long iteration times or multiple restarts,
+and we would like to maintain quality without repeating the computational work in the new clustering.
+A fresh clustering struggles with this requirement as it does not use any information in the existing clustering
+and non-obvious partitions may not be recapitulated in the new clustering.
+
+\section{Proposed re-initialization algorithm}
+
+To address these two concerns, we developed a algorithm for ``re-initialization" of a k-means clustering in an updated dataset containing a batch of new observations.
+For each existing cluster $i$, we imagine the scenario where that $i$'s center is undefined.
+We compute the squared distances for each observation, new and old, to its closest cluster center excluding $i$.
+We perform weighted sampling of a single observation where the probabilities are proportional to the squared distances (kmeans++ citation here).
+The sampled observation is our proposal for the new center for $i$.
+We then assign all observations to their closest clusters (including the proposed new center for $i$) and compute the within-cluster-sum-of-squares (WCSS).
+If the WCSS is lower than that with the original center for $i$, we accept this change to $i$'s center; otherwise we continue to use the existing center.
+This is repeated for all clusters to obtain an updated set of initial centers that is refined with the usual methods, e.g., Hartigan-Wong or Lloyd.
+
+Algorithm \ref{algo:main} contains a more specific description of the reinitialization procedure.
+Here, $\mathcal{C}$ contains the set of $k$ existing centers while $\mathcal{V}$ contains a set of $n$ observations.
+We compute the WCSS before ($w$) and after ($\tilde{w}$) the proposed change and accept the proposal if the latter is smaller.
+(Note that the centers are used as-is in the WCSS calculation - for simplicity, we do not recompute them from the observations assigned to each cluster.)
+We also permit multiple attempts to sample a $\tilde{j}$ that may achieve a lower WCSS.
+The algorithm does not make any distinction between the original and new observations - 
+both are treated equally, given that the locations of the existing centers are the only information that is retained from the original clustering. 
+
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
+
+\begin{algorithm}
+\caption{Pseudocode for k-means reinitialization.}
+\begin{algorithmic} 
+\REQUIRE $\mathcal{C} = \{\mathbf{c}_1, \mathbf{c}_2, \ldots, \mathbf{c}_k \}$, $\mathcal{V} = \{\mathbf{v}_1, \mathbf{v}_2, \ldots, \mathbf{v}_n \}$
+\ENSURE An updated set of centers in $\mathcal{C}$.
+\FOR{$i \leftarrow 1$ \TO $k$}
+\STATE{
+    Define $\mathbf{d} \leftarrow \{d_1, d_2, \ldots, d_n\}$
+    \STATE{$w \leftarrow 0$}
+    \FOR{$j \leftarrow 1$ \TO $n$}
+    \STATE{
+        $d_j \leftarrow \min_{\mathbf{c} \in \mathcal{C}} || \mathbf{c} - \mathbf{v}_j ||^2$
+        \STATE{$w \leftarrow w + d_j$}
+    }
+    \ENDFOR
+
+    \FOR{$a \leftarrow 1$ \TO $attempts$}
+    \STATE{
+        Sample $p$ from $\{1, 2, \ldots, n\}$ with probability vector $\mathbf{d}$
+        \STATE{$\tilde{w} \leftarrow 0$}
+        \FOR{$j \leftarrow 1$ \TO $n$}
+        \STATE{$\tilde{w} \leftarrow \tilde{w} + \min (d_j, || \mathbf{v}_p - \mathbf{v}_j ||^2)$}
+        \ENDFOR
+        \IF{$w > \tilde{w}$} 
+            \STATE{
+                $\mathbf{c}_i \leftarrow \mathbf{v}_p$ \\
+                \textbf{break}
+            }
+        \ENDIF
+    }
+    \ENDFOR
+}
+\ENDFOR
+\end{algorithmic}
+\label{algo:main}
+\end{algorithm}
+
+The distance-weighted sampling of the reinitialization proposes updates onto observations that are far away from existing centers.
+This encourages the creation of new centers inside distinct subpopulations that are not present in the original dataset, allowing us to achieve a large WCSS decrease for the new observations.
+We also prefer to relocate centers for weakly separated clusters as their observations can be reassigned to a neighboring cluster without a large WCSS increase.
+However, in the absence of any new subpopulations, the existing center is implicitly favored.
+Having been through several iterations of refinement during the original clustering, an existing center should achieve a lower WCSS than a relocated center at a random observation.
+
+The number of attempts dictates the effort taken to search for an acceptable update.
+A greater number of attempts increases the probability of capturing new subpopulations, as we are more likely to propose centers using observations from those subpopulations.
+However, this comes at the cost of some more computational work.
+We perform 10 attempts by default, though the exact choice does not seem to have a major impact on the results.
+
+The algorithm runs in $O(nk\log k)$ time where $\log k$ is the time complexity of a vantage point tree-based search (CITATION HERE) to find the closest center.
+An implementation can reuse the per-observation identities of the closest centers across iterations to reduce the computational cost.
+We can also effectively parallelize the calculations across observations using frameworks like OpenMP.
+
+\section{Evaluation on simulated data}
+
+\section{Evaluation on real data}
+
+\end{document}
