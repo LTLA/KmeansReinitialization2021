@@ -12,16 +12,16 @@
 
 \section{Motivation}
 
-We consider the problem of k-means clustering after a batch of extra observations have been added to the original dataset.
+We consider the problem of k-means clustering \cite{lloyd1982least} after a batch of extra observations have been added to the original dataset.
 More specifically, assume that the original dataset has already been subjected to k-means clustering.
-After adding the extra observations, we wish to obtain a new clustering of the updated dataset.
-This is usually handled by sequential k-means, where the new observations are assigned to (and update) the existing cluster centers;
-or by simply repeating the entire k-means procedure on the updated dataset with an initialization step that uses no information from the existing clustering (i.e., a "fresh" clustering).
+After adding the extra observations, we wish to obtain a new clustering of the expanded dataset with the same $k$.
+One obvious approach is to just assign each new observation to the closest existing cluster followed by post-initialization refinement - we will refer to this as the simple method.
+The other obvious approach is to repeat the entire k-means procedure on the expanded dataset without using any information from the existing clustering - we will refer to this as a "fresh" clustering.
 
 We would like our new clustering to account for new subpopulations among the recently added observations.
 This ensures that our new clustering can capture subpopulations that were not observed in the original dataset,
 which is useful when observations are coming in batches from multiple non-replicate sources.
-Unfortunately, sequential k-means struggles with this requirement as it starts in a local minimum based on the existing cluster centers.
+Unfortunately, the simple method struggles with this requirement as it starts in a local minimum based on the existing cluster centers.
 To escape, a new subpopulation must be large enough to relocate the center of the closest existing cluster, 
 while hoping that the observations for that existing cluster can be sensibly reassigned to another existing cluster.
 
@@ -30,26 +30,25 @@ This is useful when the existing clustering is known to be of interest -
 for example, a domain expert has manually generated annotations for each cluster,
 and we want to preserve as much of this information as we can in our new clustering.
 It can also be desirable when the existing clustering is high-quality but expensive, e.g., after long iteration times or multiple restarts,
-and we would like to maintain quality without repeating the computational work in the new clustering.
-A fresh clustering struggles with this requirement as it does not use any information in the existing clustering
-and non-obvious partitions may not be recapitulated in the new clustering.
+and we would like to maintain quality without repeating the computational work.
+Such preservation is difficult to achieve in a fresh clustering where non-obvious partitions may not be recapitulated.
 
 \section{Proposed re-initialization algorithm}
 
-To address these two concerns, we developed a algorithm for ``re-initialization" of a k-means clustering in an updated dataset containing a batch of new observations.
-For each existing cluster $i$, we imagine the scenario where that $i$'s center is undefined.
-We compute the squared distances for each observation, new and old, to its closest cluster center excluding $i$.
-We perform weighted sampling of a single observation where the probabilities are proportional to the squared distances (kmeans++ citation here).
+To address these two concerns, we developed a algorithm for ``re-initialization" of a k-means clustering in an expanded dataset containing a batch of new observations.
+For each existing cluster $i$, we imagine a scenario where $i$'s center is removed from the set of cluster centers.
+We compute the squared distance of each observation to its closest remaining center.
+We randomly sample a single observation where the sampling probability for each observation is proportional to its squared distance \cite{vassilvitskii2006kmeanspp}.
 The sampled observation is our proposal for the new center for $i$.
-We then assign all observations to their closest clusters (including the proposed new center for $i$) and compute the within-cluster-sum-of-squares (WCSS).
+We then assign all observations to their closest centers (including the proposed new center for $i$) and compute the within-cluster sum-of-squares (WCSS).
 If the WCSS is lower than that with the original center for $i$, we accept this change to $i$'s center; otherwise we continue to use the existing center.
-This is repeated for all clusters to obtain an updated set of initial centers that is refined with the usual methods, e.g., Hartigan-Wong or Lloyd.
+This is repeated for all clusters to obtain an updated set of centers that is refined with the usual methods, e.g., Hartigan-Wong \cite{hartigan1979algorithm} or Lloyd.
 
 Algorithm \ref{algo:main} contains a more specific description of the reinitialization procedure.
 Here, $\mathcal{C}$ contains the set of $k$ existing centers while $\mathcal{V}$ contains a set of $n$ observations.
 We compute the WCSS before ($w$) and after ($\tilde{w}$) the proposed change and accept the proposal if the latter is smaller.
 (Note that the centers are used as-is in the WCSS calculation - for simplicity, we do not recompute them from the observations assigned to each cluster.)
-We also permit multiple attempts to sample a $\tilde{j}$ that may achieve a lower WCSS.
+We also permit multiple attempts to sample a $p$ that may achieve a lower WCSS.
 The algorithm does not make any distinction between the original and new observations - 
 both are treated equally, given that the locations of the existing centers are the only information that is retained from the original clustering. 
 
@@ -93,9 +92,9 @@ both are treated equally, given that the locations of the existing centers are t
 \label{algo:main}
 \end{algorithm}
 
-The distance-weighted sampling of the reinitialization proposes updates onto observations that are far away from existing centers.
-This encourages the creation of new centers inside distinct subpopulations that are not present in the original dataset, allowing us to achieve a large WCSS decrease for the new observations.
-We also prefer to relocate centers for weakly separated clusters as their observations can be reassigned to a neighboring cluster without a large WCSS increase.
+The distance-weighted sampling means that new centers are proposed at observations that are far away from existing centers.
+This encourages the creation of new centers inside distinct subpopulations that were not present in the original dataset, allowing us to achieve a large WCSS decrease for the new observations.
+The procedure also prefers to relocate centers for weakly separated clusters as their observations can be reassigned to a neighboring cluster without a large WCSS increase.
 However, in the absence of any new subpopulations, the existing center is implicitly favored.
 Having been through several iterations of refinement during the original clustering, an existing center should achieve a lower WCSS than a relocated center at a random observation.
 
@@ -104,12 +103,15 @@ A greater number of attempts increases the probability of capturing new subpopul
 However, this comes at the cost of some more computational work.
 We perform 10 attempts by default, though the exact choice does not seem to have a major impact on the results.
 
-The algorithm runs in $O(nk\log k)$ time where $\log k$ is the time complexity of a vantage point tree-based search (CITATION HERE) to find the closest center.
+The algorithm runs in $O(nk\log k)$ time where $\log k$ is the time complexity of a vantage point tree-based search \cite{yianilos1993data} to find the closest center.
 An implementation can reuse the per-observation identities of the closest centers across iterations to reduce the computational cost.
 We can also effectively parallelize the calculations across observations using frameworks like OpenMP.
 
 \section{Evaluation on simulated data}
 
 \section{Evaluation on real data}
+
+\bibliography{ref.bib}
+\bibliographystyle{plain}
 
 \end{document}
