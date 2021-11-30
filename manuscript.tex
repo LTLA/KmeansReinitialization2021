@@ -111,27 +111,63 @@ We can also effectively parallelize the calculations across observations using f
 
 \subsection{Overview}
 
-Each simulation scenario involves an original dataset plus a new batch of observations.
-We create a clustering on the original dataset by performing kmeans++ initialization \cite{vassilvitskii2006kmeanspp} followed by 10 iterations of Hartigan-Wong refinement.
-We then add the new batch of observations to create the expanded dataset.
-With the reinitialization strategy, we use the method described in Algorithm \ref{algo:main} to update the cluster centers.
+Each simulation scenario involves the creation of one set of observations representing the original dataset and another set representing the new batch.
+We cluster the original dataset by performing kmeans++ initialization \cite{vassilvitskii2006kmeanspp} followed by 10 iterations of Hartigan-Wong refinement.
+We then add the new batch of observations to create the expanded dataset that is subjected to further clustering with some of the previously described methods.
+For reinitialization, we use an implementation of Algorithm \ref{algo:main} to update the cluster centers.
 These centers are used in another 10 Hartigan-Wong iterations on the expanded dataset to obtain a new clustering.
-With the simple method, we use the existing cluster centers in the Hartigan-Wong iterations on the expanded dataset without any alteration.
-Finally, with the fresh clustering, we simply repeat the initialization and refinement without using any information from the original clustering.
+For the simple method, we directly use the existing cluster centers in the Hartigan-Wong iterations on the expanded dataset without any alteration.
+Finally, for the fresh clustering, we repeat the initialization and refinement without using any values from the original clustering.
 
-We use two metrics to evaluate the performance of each strategy.
+We use two metrics to evaluate the performance of each strategy in each simulation scenario.
 We quantify the quality of the clustering by computing the WCSS of the new clustering in the expanded dataset.
 We also compute the adjusted Rand index (ARI) between the original and new clusterings for the subset of observations in the original dataset.
-This captures the similarity in the clusterings after the addition of the new batch.
+This represents the relative similarity in the clusterings after the addition of the new batch.
 
 \subsection{Replicate batches}
 \label{sec:repbatch}
 
-We use a simple simulation framework involving 1000 observations that are randomly distributed among $X$ distinct subpopulations in 5-dimensional space.
+We start with a simple simulation framework involving 1000 observations that are randomly distributed among $X$ distinct subpopulations in 5-dimensional space.
 The center $\mathbf{s}_x$ for subpopulation $x$ is sampled from a $\mathcal{N}(\mathbf{0}, \sigma^2 \mathbf{I})$ distribution,
 while the location for each observation in $x$ is sampled from a $\mathcal{N}(\mathbf{s}_x, \mathbf{I})$ distribution.
-We randomly put a proportion $Y$ of observations into the new batch, using the remaining observations as the original dataset.
+We randomly select a proportion $Y$ of observations and put them into the new batch; the remaining observations are used as the original dataset.
 In effect, the original dataset and the new batch are replicates of each other as they arise from the same sampling procedure.
+
+For these scenarios, the reinitialization strategy achieves the lowest WCSS and close to the highest ARI (Table \ref{tab:replicate}).
+We see the greatest difference in the WCSS when $k$ is close to $X$, likely due to a poor initialization in the original or fresh clusterings;
+in contrast, reinitialization has a chance to overcome a poor start by only accepting updates that decrease the WCSS.
+ARIs are highest for the simple method, consistent with its complete reliance on the existing cluster centers.
+Nonetheless, the ARIs from reinitialization are close to the maximum and are consistently larger than those from a fresh clustering, as expected.
+
+\begin{table}
+\caption{Differences in the WCSS and ARI for the simple and fresh clustering strategies compared to reinitialization for a range of simulations with replicate batches.
+The percentage increase in the WCSS and the absolute increase in the ARI are reported along with the standard error across 100 iterations.}
+\label{tab:replicate}
+\begin{center}
+\begin{tabular}{r r r r r r r r}
+\hline
+$X$ & $\sigma$ & $Y$ & $k$ & WCSS (simple) & WCSS (fresh) & ARI (simple) & ARI (fresh) \\
+\hline
+5 & 1 & 0.1 & 5 & $0 \pm 0$ & $0 \pm 0$ & $0.00 \pm 0.00$ & $-0.14 \pm 0.02$ \\
+10 & 1 & 0.1 & 5 & $0 \pm 0$ & $0 \pm 0$ & $0.00 \pm 0.00$ & $-0.20 \pm 0.02$ \\
+5 & 5 & 0.1 & 5 & $32 \pm 8$ & $34 \pm 6$ & $0.05 \pm 0.01$ & $-0.06 \pm 0.01$ \\
+10 & 5 & 0.1 & 5 & $6 \pm 1$ & $6 \pm 2$ & $0.04 \pm 0.01$ & $-0.26 \pm 0.02$ \\
+5 & 1 & 0.5 & 5 & $0 \pm 0$ & $0 \pm 0$ & $0.00 \pm 0.00$ & $-0.08 \pm 0.01$ \\
+10 & 1 & 0.5 & 5 & $0 \pm 0$ & $0 \pm 0$ & $0.00 \pm 0.00$ & $-0.15 \pm 0.02$ \\
+5 & 5 & 0.5 & 5 & $42 \pm 10$ & $44 \pm 9$ & $0.07 \pm 0.01$ & $-0.05 \pm 0.01$ \\
+10 & 5 & 0.5 & 5 & $2 \pm 1$ & $4 \pm 1$ & $0.02 \pm 0.01$ & $-0.28 \pm 0.02$ \\
+5 & 1 & 0.1 & 10 & $0 \pm 0$ & $0 \pm 0$ & $0.00 \pm 0.00$ & $-0.42 \pm 0.01$ \\
+10 & 1 & 0.1 & 10 & $0 \pm 0$ & $0 \pm 0$ & $0.00 \pm 0.00$ & $-0.31 \pm 0.01$ \\
+5 & 5 & 0.1 & 10 & $0 \pm 0$ & $0 \pm 0$ & $0.00 \pm 0.00$ & $-0.32 \pm 0.01$ \\
+10 & 5 & 0.1 & 10 & $38 \pm 4$ & $47 \pm 5$ & $0.10 \pm 0.01$ & $-0.06 \pm 0.01$ \\
+5 & 1 & 0.5 & 10 & $0 \pm 0$ & $0 \pm 0$ & $-0.00 \pm 0.00$ & $-0.27 \pm 0.01$ \\
+10 & 1 & 0.5 & 10 & $0 \pm 0$ & $0 \pm 0$ & $-0.00 \pm 0.00$ & $-0.20 \pm 0.01$ \\
+5 & 5 & 0.5 & 10 & $0 \pm 0$ & $0 \pm 0$ & $0.01 \pm 0.00$ & $-0.27 \pm 0.01$ \\
+10 & 5 & 0.5 & 10 & $43 \pm 5$ & $34 \pm 4$ & $0.10 \pm 0.01$ & $-0.04 \pm 0.01$ \\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
 
 \subsection{Batch-specific subpopulations}
 
@@ -139,14 +175,14 @@ We re-use the same framework from Section \ref{sec:repbatch}, but this time, we 
 All observations in the selected subpopulations are excluded from the original dataset, meaning that the new batch will contain entirely unique subpopulations.
 
 We observe that the reinitialization strategy regularly achieves the lowest WCSS across scenarios (Table \ref{tab:holdout-subpop}), consistent with its ability to adapt to new subpopulations.
-In fact, the WCSS from reinitialization is often lower than that of a fresh clustering, presumably because the former has a better starting point for refinement.
-The most obvious differences occur when $\sigma$ is large and $Z$ is a large proportion of $X$, such that any failure to form clusters at the new subpopulations inflates the WCSS.
-Reinitialization also achieves higher ARIs compared to a fresh clustering, which is most pronounced when $k$ is larger than $X$;
+The most obvious differences occur when $\sigma$ is large and $Z$ is a large proportion of $X$, such that any failure to form distinct clusters at the new subpopulations inflates the WCSS.
+(The effect of $k \approx X$ seen in Section \ref{sec:repbatch} is also relevant here.)
+Reinitialization achieves higher ARIs compared to a fresh clustering, which is most pronounced when $k$ is larger than $X$;
 this causes the formation of arbitrary partitions within subpopulations that are difficult to recapitulate without any existing information.
-While the ARIs are lower than those of the simple method, this is acceptable given that an existing center needs to be reassigned to a new subpopulation.
+While the ARIs are lower than those of the simple method, this is arguably acceptable given that an existing center needs to be reassigned to a new subpopulation.
 
 \begin{table}
-\caption{Differences in the WCSS and ARI for the simple and fresh clustering strategies compared to reinitialization for a range of simulation scenarios.
+\caption{Differences in the WCSS and ARI for the simple and fresh clustering strategies compared to reinitialization for a range of simulations involving batch-specific subpopulations. 
 The percentage increase in the WCSS and the absolute increase in the ARI are reported along with the standard error across 100 iterations.}
 \label{tab:holdout-subpop}
 \begin{center}
@@ -190,6 +226,44 @@ $X$ & $\sigma$ & $Z$ & $k$ & WCSS (simple) & WCSS (fresh) & ARI (simple) & ARI (
 5 & 5 & 3 & 20 & $31 \pm 9$ & $1 \pm 0$ & $0.36 \pm 0.01$ & $0.04 \pm 0.01$ \\
 10 & 5 & 3 & 20 & $16 \pm 4$ & $1 \pm 0$ & $0.16 \pm 0.01$ & $-0.08 \pm 0.01$ \\
 20 & 5 & 3 & 20 & $48 \pm 3$ & $33 \pm 3$ & $0.06 \pm 0.01$ & $-0.07 \pm 0.01$ \\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+\subsection{Continuous trajectories}
+
+Finally, we simulate points lying in a circle on a 2-dimensional plane with random $\mathcal{N}(0, \sigma^2\mathbf{I})$ noise.
+To create the new batch, we take all cells in an arc of the circle corresponding to a proportion $U$ of the circumference.
+This represents a continuous trajectory of new observations rather than discrete subpopulations.
+
+WCSS values are comparable for all methods while the highest ARIs are shared between reinitialization and the simple method (Table \ref{tab:circular}).
+The fresh clustering has the lowest ARI, which is expected given the absence of a clear partitioning in a circular mass of observations.
+The low WCSS for the simple method is due to the proximity of the new and existing observations,
+allowing the centers to incrementally migrate into the new batch during refinement.
+This is more difficult in scenarios involving new subpopulations where the simple method is more likely to be trapped in a local minimum.
+
+\begin{table}
+\caption{Differences in the WCSS and ARI for the simple and fresh clustering strategies compared to reinitialization for a range of simulations involving a circular trajectory.
+The percentage increase in the WCSS and the absolute increase in the ARI are reported along with the standard error across 100 iterations.}
+\label{tab:circular}
+\begin{center}
+\begin{tabular}{r r r r r r r}
+\hline
+$\sigma$ & $A$ & $k$ & WCSS (simple) & WCSS (fresh) & ARI (simple) & ARI (fresh) \\
+\hline
+0.1 & 0.1 & 5 & $0 \pm 0$ & $0 \pm 0$ & $0.02 \pm 0.01$ & $-0.17 \pm 0.02$ \\
+0.5 & 0.1 & 5 & $0 \pm 0$ & $0 \pm 0$ & $-0.00 \pm 0.00$ & $-0.21 \pm 0.02$ \\
+0.1 & 0.25 & 5 & $0 \pm 0$ & $0 \pm 0$ & $-0.04 \pm 0.01$ & $-0.02 \pm 0.01$ \\
+0.5 & 0.25 & 5 & $0 \pm 0$ & $0 \pm 0$ & $0.01 \pm 0.01$ & $-0.08 \pm 0.01$ \\
+0.1 & 0.5 & 5 & $0 \pm 0$ & $0 \pm 0$ & $-0.01 \pm 0.01$ & $-0.01 \pm 0.01$ \\
+0.5 & 0.5 & 5 & $0 \pm 0$ & $0 \pm 0$ & $0.02 \pm 0.01$ & $0.00 \pm 0.01$ \\
+0.1 & 0.1 & 10 & $1 \pm 0$ & $1 \pm 0$ & $0.01 \pm 0.01$ & $-0.10 \pm 0.01$ \\
+0.5 & 0.1 & 10 & $0 \pm 0$ & $0 \pm 0$ & $0.01 \pm 0.01$ & $-0.30 \pm 0.01$ \\
+0.1 & 0.25 & 10 & $1 \pm 0$ & $0 \pm 0$ & $-0.01 \pm 0.01$ & $-0.02 \pm 0.01$ \\
+0.5 & 0.25 & 10 & $0 \pm 0$ & $0 \pm 0$ & $0.02 \pm 0.01$ & $-0.12 \pm 0.01$ \\
+0.1 & 0.5 & 10 & $0 \pm 0$ & $0 \pm 0$ & $0.03 \pm 0.01$ & $0.01 \pm 0.01$ \\
+0.5 & 0.5 & 10 & $0 \pm 0$ & $0 \pm 0$ & $-0.01 \pm 0.01$ & $-0.02 \pm 0.01$ \\
 \hline
 \end{tabular}
 \end{center}
