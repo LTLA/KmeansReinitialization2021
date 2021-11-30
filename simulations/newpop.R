@@ -12,9 +12,6 @@ generator <- function(npop = 10, sd = 5, holdout=1, ncells = 1000, ndim = 5) {
     }
 }
 
-dir <- "results/populations"
-unlink(dir, recursive=TRUE)
-dir.create(dir, recursive=TRUE, showWarnings=FALSE)
 set.seed(984241)
 
 settings <- expand.grid(
@@ -40,7 +37,8 @@ for (j in seq_len(ncol(df))) {
 }
 
 df <- cbind(settings, df)
-write.table(df, file=file.path(dir, "stats.tsv"), row.names=FALSE, sep="\t")
+dir <- "results"
+write.table(df, file=file.path(dir, "newpop.tsv"), row.names=FALSE, sep="\t")
 
 #hist(log2(df$wcss.simple.mean))
 #hist(df$rand.fresh.mean)
