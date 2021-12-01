@@ -134,9 +134,9 @@ We randomly select a proportion $Y$ of observations and put them into the new ba
 In effect, the original dataset and the new batch are replicates of each other as they arise from the same sampling procedure.
 
 For these scenarios, the reinitialization strategy achieves the lowest WCSS and close to the highest ARI (Table \ref{tab:replicate}).
-We see the greatest difference in the WCSS when $k$ is close to $X$, likely due to a poor initialization in the original or fresh clusterings;
-in contrast, reinitialization has a chance to overcome a poor start by only accepting updates that decrease the WCSS.
-ARIs are highest for the simple method, consistent with its complete reliance on the existing cluster centers.
+We see the greatest differences in the WCSS when $k$ is close to $X$, likely due to a poor initialization in the original or fresh clusterings;
+in contrast, reinitialization has an opportunity to overcome a poor start by only accepting updates that decrease the WCSS.
+ARIs are highest for the simple method, consistent with its reliance on the existing cluster centers.
 Nonetheless, the ARIs from reinitialization are close to the maximum and are consistently larger than those from a fresh clustering, as expected.
 
 \begin{table}
@@ -171,15 +171,15 @@ $X$ & $\sigma$ & $Y$ & $k$ & WCSS (simple) & WCSS (fresh) & ARI (simple) & ARI (
 
 \subsection{Batch-specific subpopulations}
 
-We re-use the same framework from Section \ref{sec:repbatch}, but this time, we randomly select $Z$ subpopulations to define the new batch.
-All observations in the selected subpopulations are excluded from the original dataset, meaning that the new batch will contain entirely unique subpopulations.
+Re-using the same framework from Section \ref{sec:repbatch}, we randomly select $Z$ subpopulations and exclude all of its observations from the original dataset.
+This means that the new batch will contain entirely unique subpopulations.
 
 We observe that the reinitialization strategy regularly achieves the lowest WCSS across scenarios (Table \ref{tab:holdout-subpop}), consistent with its ability to adapt to new subpopulations.
 The most obvious differences occur when $\sigma$ is large and $Z$ is a large proportion of $X$, such that any failure to form distinct clusters at the new subpopulations inflates the WCSS.
 (The effect of $k \approx X$ seen in Section \ref{sec:repbatch} is also relevant here.)
 Reinitialization achieves higher ARIs compared to a fresh clustering, which is most pronounced when $k$ is larger than $X$;
-this causes the formation of arbitrary partitions within subpopulations that are difficult to recapitulate without any existing information.
-While the ARIs are lower than those of the simple method, this is arguably acceptable given that an existing center needs to be reassigned to a new subpopulation.
+this is due to the formation of arbitrary partitions within subpopulations that are difficult to recapitulate without any existing information.
+While the reinitialization ARIs are lower than those of the simple method, this is arguably acceptable given that an existing center needs to be reassigned to a new subpopulation.
 
 \begin{table}
 \caption{Differences in the WCSS and ARI for the simple and fresh clustering strategies compared to reinitialization for a range of simulations involving batch-specific subpopulations. 
@@ -190,42 +190,22 @@ The percentage increase in the WCSS and the absolute increase in the ARI are rep
 \hline
 $X$ & $\sigma$ & $Z$ & $k$ & WCSS (simple) & WCSS (fresh) & ARI (simple) & ARI (fresh) \\
 \hline
-5 & 1 & 1 & 5 & $0 \pm 0$ & $0 \pm 0$ & $-0.00 \pm 0.01$ & $-0.06 \pm 0.01$ \\
-10 & 1 & 1 & 5 & $0 \pm 0$ & $0 \pm 0$ & $-0.00 \pm 0.00$ & $-0.14 \pm 0.02$ \\
-20 & 1 & 1 & 5 & $0 \pm 0$ & $0 \pm 0$ & $0.00 \pm 0.00$ & $-0.27 \pm 0.02$ \\
-5 & 5 & 1 & 5 & $129 \pm 15$ & $53 \pm 11$ & $0.04 \pm 0.01$ & $-0.08 \pm 0.01$ \\
-10 & 5 & 1 & 5 & $6 \pm 1$ & $6 \pm 2$ & $0.07 \pm 0.01$ & $-0.19 \pm 0.02$ \\
-20 & 5 & 1 & 5 & $1 \pm 0$ & $2 \pm 1$ & $0.01 \pm 0.01$ & $-0.34 \pm 0.02$ \\
-5 & 1 & 3 & 5 & $0 \pm 0$ & $0 \pm 0$ & $0.01 \pm 0.01$ & $-0.01 \pm 0.01$ \\
-10 & 1 & 3 & 5 & $0 \pm 0$ & $0 \pm 0$ & $0.00 \pm 0.01$ & $-0.07 \pm 0.01$ \\
-20 & 1 & 3 & 5 & $0 \pm 0$ & $0 \pm 0$ & $-0.00 \pm 0.00$ & $-0.20 \pm 0.02$ \\
-5 & 5 & 3 & 5 & $192 \pm 20$ & $38 \pm 10$ & $0.12 \pm 0.01$ & $0.01 \pm 0.01$ \\
-10 & 5 & 3 & 5 & $7 \pm 1$ & $7 \pm 1$ & $0.08 \pm 0.02$ & $-0.11 \pm 0.02$ \\
-20 & 5 & 3 & 5 & $1 \pm 0$ & $3 \pm 1$ & $0.03 \pm 0.01$ & $-0.27 \pm 0.02$ \\
-5 & 1 & 1 & 10 & $0 \pm 0$ & $0 \pm 0$ & $0.03 \pm 0.01$ & $-0.21 \pm 0.01$ \\
-10 & 1 & 1 & 10 & $0 \pm 0$ & $0 \pm 0$ & $0.00 \pm 0.00$ & $-0.27 \pm 0.01$ \\
-20 & 1 & 1 & 10 & $0 \pm 0$ & $0 \pm 0$ & $0.00 \pm 0.00$ & $-0.32 \pm 0.01$ \\
-5 & 5 & 1 & 10 & $4 \pm 2$ & $0 \pm 0$ & $0.14 \pm 0.01$ & $-0.17 \pm 0.01$ \\
-10 & 5 & 1 & 10 & $58 \pm 5$ & $43 \pm 6$ & $0.06 \pm 0.01$ & $-0.07 \pm 0.01$ \\
-20 & 5 & 1 & 10 & $6 \pm 1$ & $6 \pm 1$ & $0.03 \pm 0.01$ & $-0.24 \pm 0.01$ \\
-5 & 1 & 3 & 10 & $0 \pm 0$ & $0 \pm 0$ & $0.05 \pm 0.01$ & $-0.02 \pm 0.01$ \\
-10 & 1 & 3 & 10 & $0 \pm 0$ & $0 \pm 0$ & $0.03 \pm 0.01$ & $-0.09 \pm 0.01$ \\
-20 & 1 & 3 & 10 & $0 \pm 0$ & $0 \pm 0$ & $0.00 \pm 0.00$ & $-0.22 \pm 0.01$ \\
-5 & 5 & 3 & 10 & $45 \pm 11$ & $0 \pm 0$ & $0.26 \pm 0.01$ & $0.03 \pm 0.01$ \\
-10 & 5 & 3 & 10 & $98 \pm 10$ & $31 \pm 4$ & $0.04 \pm 0.01$ & $-0.05 \pm 0.01$ \\
-20 & 5 & 3 & 10 & $9 \pm 1$ & $8 \pm 1$ & $0.06 \pm 0.01$ & $-0.16 \pm 0.01$ \\
-5 & 1 & 1 & 20 & $1 \pm 0$ & $0 \pm 0$ & $0.05 \pm 0.01$ & $-0.24 \pm 0.01$ \\
-10 & 1 & 1 & 20 & $0 \pm 0$ & $0 \pm 0$ & $0.03 \pm 0.01$ & $-0.34 \pm 0.01$ \\
-20 & 1 & 1 & 20 & $0 \pm 0$ & $0 \pm 0$ & $0.01 \pm 0.00$ & $-0.42 \pm 0.01$ \\
-5 & 5 & 1 & 20 & $4 \pm 0$ & $1 \pm 0$ & $0.22 \pm 0.01$ & $-0.17 \pm 0.01$ \\
-10 & 5 & 1 & 20 & $9 \pm 3$ & $1 \pm 0$ & $0.07 \pm 0.01$ & $-0.24 \pm 0.01$ \\
-20 & 5 & 1 & 20 & $37 \pm 3$ & $35 \pm 3$ & $0.08 \pm 0.01$ & $-0.07 \pm 0.01$ \\
-5 & 1 & 3 & 20 & $1 \pm 0$ & $0 \pm 0$ & $0.06 \pm 0.01$ & $-0.02 \pm 0.01$ \\
-10 & 1 & 3 & 20 & $0 \pm 0$ & $0 \pm 0$ & $0.02 \pm 0.01$ & $-0.19 \pm 0.01$ \\
-20 & 1 & 3 & 20 & $0 \pm 0$ & $0 \pm 0$ & $0.00 \pm 0.01$ & $-0.31 \pm 0.01$ \\
-5 & 5 & 3 & 20 & $31 \pm 9$ & $1 \pm 0$ & $0.36 \pm 0.01$ & $0.04 \pm 0.01$ \\
-10 & 5 & 3 & 20 & $16 \pm 4$ & $1 \pm 0$ & $0.16 \pm 0.01$ & $-0.08 \pm 0.01$ \\
-20 & 5 & 3 & 20 & $48 \pm 3$ & $33 \pm 3$ & $0.06 \pm 0.01$ & $-0.07 \pm 0.01$ \\
+5 & 1 & 1 & 5 & $0 \pm 0$ & $0 \pm 0$ & $0.00 \pm 0.00$ & $-0.05 \pm 0.01$ \\
+10 & 1 & 1 & 5 & $0 \pm 0$ & $0 \pm 0$ & $-0.00 \pm 0.00$ & $-0.16 \pm 0.02$ \\
+5 & 5 & 1 & 5 & $108 \pm 11$ & $37 \pm 7$ & $0.05 \pm 0.01$ & $-0.05 \pm 0.01$ \\
+10 & 5 & 1 & 5 & $9 \pm 2$ & $5 \pm 1$ & $0.10 \pm 0.01$ & $-0.17 \pm 0.02$ \\
+5 & 1 & 3 & 5 & $0 \pm 0$ & $0 \pm 0$ & $0.01 \pm 0.01$ & $-0.01 \pm 0.00$ \\
+10 & 1 & 3 & 5 & $0 \pm 0$ & $0 \pm 0$ & $0.01 \pm 0.01$ & $-0.05 \pm 0.01$ \\
+5 & 5 & 3 & 5 & $207 \pm 27$ & $39 \pm 8$ & $0.12 \pm 0.01$ & $0.01 \pm 0.01$ \\
+10 & 5 & 3 & 5 & $8 \pm 1$ & $7 \pm 2$ & $0.11 \pm 0.02$ & $-0.10 \pm 0.02$ \\
+5 & 1 & 1 & 10 & $0 \pm 0$ & $0 \pm 0$ & $0.03 \pm 0.01$ & $-0.20 \pm 0.01$ \\
+10 & 1 & 1 & 10 & $0 \pm 0$ & $0 \pm 0$ & $0.00 \pm 0.01$ & $-0.22 \pm 0.01$ \\
+5 & 5 & 1 & 10 & $16 \pm 8$ & $0 \pm 0$ & $0.15 \pm 0.01$ & $-0.15 \pm 0.01$ \\
+10 & 5 & 1 & 10 & $59 \pm 6$ & $46 \pm 5$ & $0.06 \pm 0.01$ & $-0.07 \pm 0.01$ \\
+5 & 1 & 3 & 10 & $0 \pm 0$ & $0 \pm 0$ & $0.07 \pm 0.01$ & $0.00 \pm 0.01$ \\
+10 & 1 & 3 & 10 & $0 \pm 0$ & $0 \pm 0$ & $0.02 \pm 0.01$ & $-0.11 \pm 0.01$ \\
+5 & 5 & 3 & 10 & $49 \pm 12$ & $0 \pm 0$ & $0.25 \pm 0.01$ & $0.04 \pm 0.01$ \\
+10 & 5 & 3 & 10 & $99 \pm 9$ & $35 \pm 6$ & $0.07 \pm 0.01$ & $-0.03 \pm 0.01$ \\
 \hline
 \end{tabular}
 \end{center}
@@ -239,7 +219,7 @@ This represents a continuous trajectory of new observations rather than discrete
 
 WCSS values are comparable for all methods while the highest ARIs are shared between reinitialization and the simple method (Table \ref{tab:circular}).
 The fresh clustering has the lowest ARI, which is expected given the absence of a clear partitioning in a circular mass of observations.
-The low WCSS for the simple method is due to the proximity of the new and existing observations,
+The ability of the simple method to achieve a low WCSS is due to the proximity of the new and existing observations,
 allowing the centers to incrementally migrate into the new batch during refinement.
 This is more difficult in scenarios involving new subpopulations where the simple method is more likely to be trapped in a local minimum.
 

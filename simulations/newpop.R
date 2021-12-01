@@ -15,10 +15,10 @@ generator <- function(npop = 10, sd = 5, holdout=1, ncells = 1000, ndim = 5) {
 set.seed(984241)
 
 settings <- expand.grid(
-    npop = c(5, 10, 20),
+    npop = c(5, 10),
     sd = c(1, 5),
     holdout = c(1, 3),
-    k = c(5, 10, 20)
+    k = c(5, 10)
 )
 
 library(KmeansReinitialization2021)
